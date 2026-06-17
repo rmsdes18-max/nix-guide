@@ -140,19 +140,28 @@ function renderItem(item) {
   const typePart = item.parts.find((p) => p.kind === 'type');
   const badge = typePart ? typeBadge(typePart.text) : '';
 
-  let body = '';
+  let effects = '';
+  const notes = [];
   for (const p of item.parts) {
     if (p.kind === 'type') continue;
     if (p.kind === 'effect') {
       const label = p.label !== 'Effect' ? `<span class="eff-label">${esc(p.label.replace(/^Effect\s*/, '').replace(/[()]/g, '').trim())}</span> ` : '';
-      body += `<p class="effect">${label}${inline(p.text)}</p>`;
+      effects += `<p class="effect">${label}${inline(p.text)}</p>`;
     } else if (p.kind === 'note') {
-      body += `<div class="note"><span class="note__who">Hexapod</span>${inline(p.text)}</div>`;
+      notes.push(inline(p.text));
     }
   }
+
+  // Note sits inline in the card, hidden until the weapon-level button reveals
+  // every note in that weapon at once.
+  const noteBlock = notes.length
+    ? `<div class="note"><span class="note__who">Hexapod</span>${notes.join('<br><br>')}</div>`
+    : '';
+
   return `<article class="item">
       <header class="item__head"><h4>${inline(item.name)}</h4>${badge}</header>
-      ${body}
+      ${effects}
+      ${noteBlock}
     </article>`;
 }
 
@@ -176,13 +185,20 @@ const navLinks = weaponSections.map((s) => {
 }).join('\n        ');
 
 const weaponHtml = weaponSections.map((s) => {
+  const wslug = slug(s.title);
   const isNew = NEW_WEAPONS.has(s.title);
   const introHtml = s.intro.length ? `<div class="weapon__intro">${renderIntro(s.intro)}</div>` : '';
   const subs = s.subs.map(renderSub).join('\n');
-  return `<section class="weapon" id="${slug(s.title)}">
+  return `<section class="weapon" id="${wslug}">
       <div class="weapon__head">
-        <h2>${esc(s.title)}</h2>
-        ${isNew ? '<span class="new-tag">NEW WEAPON</span>' : ''}
+        <div class="weapon__head-left">
+          <h2>${esc(s.title)}</h2>
+          ${isNew ? '<span class="new-tag">NEW WEAPON</span>' : ''}
+        </div>
+        <button class="hexa-toggle" type="button" aria-pressed="false">
+          <span class="hexa-toggle__on">Show Hexapod’s takes</span>
+          <span class="hexa-toggle__off">Hide Hexapod’s takes</span>
+        </button>
       </div>
       ${introHtml}
       ${subs}

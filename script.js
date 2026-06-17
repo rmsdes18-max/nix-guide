@@ -47,3 +47,14 @@
   );
   onScroll();
 })();
+
+// One button per weapon reveals every Hexapod note in that weapon at once.
+(function () {
+  document.addEventListener('click', function (e) {
+    const btn = e.target.closest('.hexa-toggle');
+    if (!btn) return;
+    const weapon = btn.closest('.weapon');
+    const on = weapon.classList.toggle('notes-on');
+    btn.setAttribute('aria-pressed', String(on));
+  });
+})();

@@ -173,10 +173,17 @@ section { scroll-margin-top: 70px; }
 .weapon:first-of-type { border-top: 2px solid var(--line-strong); }
 .weapon__head {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+.weapon__head-left {
+  display: flex;
   align-items: baseline;
   gap: 14px;
   flex-wrap: wrap;
-  margin-bottom: 6px;
 }
 .weapon__head h2 {
   font-family: var(--serif);
@@ -207,6 +214,29 @@ section { scroll-margin-top: 70px; }
 }
 .weapon__intro p { margin: 0; }
 
+/* Weapon-level "Show Hexapod's takes" toggle */
+.hexa-toggle {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: #fff;
+  font-family: var(--serif);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.hexa-toggle:hover { background: var(--bg-soft); }
+.hexa-toggle[aria-pressed="true"] { background: var(--ink); color: #fff; }
+.hexa-toggle__off { display: none; }
+.hexa-toggle[aria-pressed="true"] .hexa-toggle__on { display: none; }
+.hexa-toggle[aria-pressed="true"] .hexa-toggle__off { display: inline; }
+
 /* ===== Subsection ===== */
 .subsection { margin-top: 34px; }
 .sub-title {
@@ -222,7 +252,13 @@ section { scroll-margin-top: 70px; }
 }
 
 /* ===== Item cards ===== */
-.items { display: grid; gap: 14px; }
+/* Two across on desktop ("una langa alta"), one per row on mobile. */
+.items {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  align-items: start;
+}
 .item {
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -263,8 +299,9 @@ section { scroll-margin-top: 70px; }
   vertical-align: middle;
 }
 
-/* Hexapod note */
+/* Hexapod note — hidden until the weapon's toggle reveals all of them at once. */
 .note {
+  display: none;
   position: relative;
   background: var(--note-bg);
   border-left: 3px solid #cfcfca;
@@ -275,6 +312,7 @@ section { scroll-margin-top: 70px; }
   color: var(--ink-soft);
   margin-top: 10px;
 }
+.weapon.notes-on .note { display: block; }
 .note__who {
   display: block;
   font-style: normal;
@@ -347,6 +385,11 @@ section { scroll-margin-top: 70px; }
 .totop:hover { transform: translateY(-2px); }
 
 /* ===== Responsive ===== */
+/* Below the grid breakpoint: one item per row ("una sub alta"). */
+@media (max-width: 760px) {
+  .items { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 640px) {
   body { font-size: 15px; }
   .nav__brand { display: none; }
