@@ -1,3 +1,5 @@
 # Raw transcript source (large, not needed for the site)
 transcript-source.md
+# Intermediate per-weapon translation parts (assembled into content-tr.md)
+tr-parts/
 .DS_Store

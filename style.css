@@ -33,11 +33,38 @@ a { color: inherit; }
 
 /* ===== Hero ===== */
 .hero {
+  position: relative;
   background: var(--ink);
   color: #fff;
   padding: clamp(56px, 10vw, 110px) 24px clamp(40px, 7vw, 70px);
   border-bottom: 1px solid #000;
 }
+
+/* Language switcher (top-right of hero) */
+.lang-switch {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  display: flex;
+  gap: 2px;
+  border: 1px solid #3a3a3a;
+  border-radius: 100px;
+  padding: 3px;
+  z-index: 2;
+}
+.lang-switch a {
+  text-decoration: none;
+  font-family: var(--serif);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: #aaa;
+  padding: 5px 13px;
+  border-radius: 100px;
+  transition: background 0.15s, color 0.15s;
+}
+.lang-switch a:hover { color: #fff; }
+.lang-switch a.is-current { background: #fff; color: var(--ink); }
 .hero__inner { max-width: var(--max); margin: 0 auto; }
 .hero__eyebrow {
   font-family: var(--sans);
@@ -300,8 +327,12 @@ section { scroll-margin-top: 70px; }
 }
 
 /* Hexapod note — hidden until the weapon's toggle reveals all of them at once. */
-.note {
-  display: none;
+.note { display: none; margin-top: 10px; }
+.weapon.notes-on .note { display: block; }
+
+/* The note holds an optional TR summary (Özet) + Hexapod's EN take. */
+.note-summary,
+.note-en {
   position: relative;
   background: var(--note-bg);
   border-left: 3px solid #cfcfca;
@@ -310,9 +341,14 @@ section { scroll-margin-top: 70px; }
   font-size: 14px;
   font-style: italic;
   color: var(--ink-soft);
-  margin-top: 10px;
 }
-.weapon.notes-on .note { display: block; }
+/* TR summary leads, set apart from the English take. */
+.note-summary {
+  background: #eceae3;
+  border-left-color: var(--ink);
+  font-style: normal;
+  margin-bottom: 8px;
+}
 .note__who {
   display: block;
   font-style: normal;
