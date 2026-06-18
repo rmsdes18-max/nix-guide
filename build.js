@@ -208,11 +208,10 @@ function renderPdTalk(srcPath) {
     if (img) {
       closeList();
       const desc = img[1].trim(), ts = img[2].trim(), src = img[3].trim();
-      // Placeholder by default; the image reveals itself once it loads
-      // successfully (robust with lazy loading — a missing file just stays a box).
-      html += `<figure class="pd-shot is-missing">`
+      // Image shows normally; a missing file (404) flips to a dashed placeholder.
+      html += `<figure class="pd-shot">`
         + `<img src="${esc(src)}" alt="${esc(desc)}" loading="lazy"`
-        + ` onload="this.closest('.pd-shot').classList.remove('is-missing')">`
+        + ` onerror="this.closest('.pd-shot').classList.add('is-missing')">`
         + `<figcaption><span class="pd-ts">${esc(ts)}</span> ${inline(desc)}</figcaption>`
         + `</figure>`;
       continue;
