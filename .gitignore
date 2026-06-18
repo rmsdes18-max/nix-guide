@@ -2,4 +2,8 @@
 transcript-source.md
 # Intermediate per-weapon translation parts (assembled into content-tr.md)
 tr-parts/
+# PDF verification: extracted source + per-weapon corrected parts
+pdf-source.md
+corrected-en/
+corrected-tr/
 .DS_Store
