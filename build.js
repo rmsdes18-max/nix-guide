@@ -3,6 +3,14 @@
 // Re-run after editing content:  node build.js
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
+
+// Short content hash for cache-busting CSS/JS so updates show immediately.
+const assetV = (file) => crypto
+  .createHash('md5')
+  .update(fs.readFileSync(path.join(__dirname, file)))
+  .digest('hex')
+  .slice(0, 8);
 
 const WEAPONS = [
   'Longbow', 'Crossbow', 'Daggers', 'Gauntlets', 'Greatsword',
@@ -177,6 +185,52 @@ function renderSub(sub) {
     </div>`;
 }
 
+// Renders the PD Talk source (intro paragraph + ### sub-topics + bullets +
+// `![desc @ ~M:SS](images/x.jpg)` image markers). EN page only.
+function renderPdTalk(srcPath) {
+  if (!fs.existsSync(srcPath)) return '';
+  const lines = fs.readFileSync(srcPath, 'utf8').split('\n');
+  let html = '';
+  let inList = false;
+  let seenSub = false;
+  const closeList = () => { if (inList) { html += '</ul>'; inList = false; } };
+
+  for (const raw of lines) {
+    const line = raw.replace(/\s+$/, '');
+    if (line.startsWith('## ')) continue; // section title handled in the template
+    if (line.startsWith('### ')) {
+      closeList();
+      seenSub = true;
+      html += `<h3 class="pd-sub">${inline(line.slice(4).trim())}</h3>`;
+      continue;
+    }
+    const img = line.match(/^!\[(.+?)\s*@\s*([^\]]+?)\]\(([^)]+)\)\s*$/);
+    if (img) {
+      closeList();
+      const desc = img[1].trim(), ts = img[2].trim(), src = img[3].trim();
+      // Placeholder by default; the image reveals itself once it loads
+      // successfully (robust with lazy loading — a missing file just stays a box).
+      html += `<figure class="pd-shot is-missing">`
+        + `<img src="${esc(src)}" alt="${esc(desc)}" loading="lazy"`
+        + ` onload="this.closest('.pd-shot').classList.remove('is-missing')">`
+        + `<figcaption><span class="pd-ts">${esc(ts)}</span> ${inline(desc)}</figcaption>`
+        + `</figure>`;
+      continue;
+    }
+    const bullet = line.match(/^-\s+(.*)$/);
+    if (bullet) {
+      if (!inList) { html += '<ul class="pd-list">'; inList = true; }
+      html += `<li>${inline(bullet[1])}</li>`;
+      continue;
+    }
+    if (line.trim() === '') continue;
+    closeList();
+    html += `<p class="${seenSub ? 'pd-p' : 'pd-intro'}">${inline(line.trim())}</p>`;
+  }
+  closeList();
+  return html;
+}
+
 // --- Per-language UI strings (content terms stay in the markdown) ---
 const STRINGS = {
   en: {
@@ -264,6 +318,14 @@ function buildPage(lang, srcPath, outPath) {
       <a href="tr.html"${lang === 'tr' ? ' class="is-current"' : ''}>TR</a>
     </div>`;
 
+  // PD Talk lives on its own page (pdtalk.html); the hero shows a big CTA — EN only.
+  const pdCta = lang === 'en' ? `<a class="pd-cta" href="pdtalk.html">
+        <span class="pd-cta__kicker">Official video</span>
+        <span class="pd-cta__title">PD Talk</span>
+        <span class="pd-cta__sub">The Frozen Divide: Nix — fully broken down</span>
+        <span class="pd-cta__arrow">Read it →</span>
+      </a>` : '';
+
   const html = `<!DOCTYPE html>
 <html lang="${t.htmlLang}">
 <head>
@@ -274,20 +336,23 @@ function buildPage(lang, srcPath, outPath) {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=${assetV('style.css')}">
 </head>
 <body>
 <header class="hero">
   ${langSwitch}
   <div class="hero__inner">
-    <p class="hero__eyebrow">${t.eyebrow}</p>
-    <h1 class="hero__title">NIX</h1>
-    <p class="hero__sub">${t.heroSub}</p>
-    <div class="hero__meta">
-      <span>${t.metaWeapons(weaponSections.length)}</span>
-      <span>${t.metaItems(counts)}</span>
-      <span>${t.metaDrop}</span>
+    <div class="hero__main">
+      <p class="hero__eyebrow">${t.eyebrow}</p>
+      <h1 class="hero__title">NIX</h1>
+      <p class="hero__sub">${t.heroSub}</p>
+      <div class="hero__meta">
+        <span>${t.metaWeapons(weaponSections.length)}</span>
+        <span>${t.metaItems(counts)}</span>
+        <span>${t.metaDrop}</span>
+      </div>
     </div>
+    ${pdCta}
   </div>
 </header>
 
@@ -325,7 +390,7 @@ function buildPage(lang, srcPath, outPath) {
 </footer>
 
 <button class="totop" id="totop" aria-label="${esc(t.toTop)}">↑</button>
-<script src="script.js"></script>
+<script src="script.js?v=${assetV('script.js')}"></script>
 </body>
 </html>
 `;
@@ -334,5 +399,55 @@ function buildPage(lang, srcPath, outPath) {
   console.log(`Wrote ${outPath} — ${weaponSections.length} weapons, ${counts} items (${lang}).`);
 }
 
+// Standalone PD Talk page (EN only) — full breakdown of the official video.
+function buildPdTalkPage() {
+  const body = renderPdTalk(path.join(__dirname, 'pdtalk.md'));
+  const shots = (body.match(/pd-shot/g) || []).length;
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PD Talk — The Frozen Divide: Nix · NIX</title>
+<meta name="description" content="Full breakdown of the official Throne and Liberty PD Talk for The Frozen Divide: Nix — everything Producer Park Geon-su announced.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=${assetV('style.css')}">
+</head>
+<body>
+<header class="hero hero--pd">
+  <div class="hero__inner">
+    <div class="hero__main">
+      <p class="hero__eyebrow">Throne and Liberty · Official PD Talk</p>
+      <h1 class="hero__title">PD TALK</h1>
+      <p class="hero__sub">The Frozen Divide: Nix — a full breakdown of everything Producer Park Geon-su (“Sentry”) announced.</p>
+      <div class="hero__cta-row">
+        <a class="hero__back" href="index.html">← Back to datamine</a>
+        <a class="hero__watch" href="https://www.youtube.com/watch?v=8PfPJwRlylE" target="_blank" rel="noopener">Watch the video ↗</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="main pd-main">
+  ${body}
+</main>
+
+<footer class="footer">
+  <p>Breakdown of the official <a href="https://www.youtube.com/watch?v=8PfPJwRlylE" target="_blank" rel="noopener">PD Talk</a> video. Throne and Liberty © NCSOFT / Amazon Games.</p>
+  <p class="footer__small"><a href="index.html">← Back to the NIX datamine</a></p>
+</footer>
+
+<button class="totop" id="totop" aria-label="Back to top">↑</button>
+<script src="script.js?v=${assetV('script.js')}"></script>
+</body>
+</html>
+`;
+  fs.writeFileSync(path.join(__dirname, 'pdtalk.html'), html);
+  console.log(`Wrote pdtalk.html — ${shots} screenshot slots.`);
+}
+
 buildPage('en', path.join(__dirname, 'content.md'), path.join(__dirname, 'index.html'));
 buildPage('tr', path.join(__dirname, 'content-tr.md'), path.join(__dirname, 'tr.html'));
+buildPdTalkPage();
