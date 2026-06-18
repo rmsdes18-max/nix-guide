@@ -386,6 +386,7 @@ function buildPage(lang, srcPath, outPath) {
 <footer class="footer">
   <p>${t.footer}</p>
   <p class="footer__small">${t.footerSmall}</p>
+  <p class="footer__love">made with <span class="heart">&#10084;</span> by gogurm</p>
 </footer>
 
 <button class="totop" id="totop" aria-label="${esc(t.toTop)}">↑</button>
@@ -436,6 +437,7 @@ function buildPdTalkPage() {
 <footer class="footer">
   <p>Breakdown of the official <a href="https://www.youtube.com/watch?v=8PfPJwRlylE" target="_blank" rel="noopener">PD Talk</a> video. Throne and Liberty © NCSOFT / Amazon Games.</p>
   <p class="footer__small"><a href="index.html">← Back to the NIX datamine</a></p>
+  <p class="footer__love">made with <span class="heart">&#10084;</span> by gogurm</p>
 </footer>
 
 <button class="totop" id="totop" aria-label="Back to top">↑</button>

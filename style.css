@@ -454,6 +454,16 @@ section { scroll-margin-top: 70px; }
 }
 .footer a { color: var(--ink); }
 .footer__small { margin-top: 8px; font-size: 12px; }
+.footer__love {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  font-family: var(--serif);
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: var(--ink-soft);
+}
+.footer__love .heart { color: #e23; font-style: normal; }
 
 /* ===== To-top button ===== */
 .totop {
